@@ -5,52 +5,91 @@ import 'individual_bar.dart';
 class MyBarGraph extends StatefulWidget {
   final List<double> monthlySummary;
   final int startMonth;
-  const MyBarGraph({super.key, required this.monthlySummary, required this.startMonth});
+
+  const MyBarGraph(
+      {super.key, required this.monthlySummary, required this.startMonth});
 
   @override
   State<MyBarGraph> createState() => _MyBarGraphState();
 }
 
 class _MyBarGraphState extends State<MyBarGraph> {
-
   List<IndividualBar> barData = [];
 
   void initializeBarData() {
-    barData = List.generate(widget.monthlySummary.length,
-            (index) => IndividualBar(
-                x: index,
-                y: widget.monthlySummary[index],
-            ),
+    barData = List.generate(
+      widget.monthlySummary.length,
+      (index) => IndividualBar(
+        x: index,
+        y: widget.monthlySummary[index],
+      ),
     );
+  }
+
+  //calculate appropiate Y value for chart
+  double calculateMax() {
+    double max = 300000.00;
+
+    widget.monthlySummary.sort();
+    max = widget.monthlySummary.last * 1.05;
+
+    if (max < 300000.00) {
+      return 300000.00;
+    }
+
+    return max;
   }
 
   @override
   Widget build(BuildContext context) {
-
     //init bar chart
     initializeBarData();
 
-    return BarChart(
-      BarChartData(
-        minY: 0,
-        maxY: 300000,
-        gridData: const FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        titlesData:  FlTitlesData(
-          show: true,
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(sideTitles: SideTitles( showTitles: true,
-              getTitlesWidget: getBottomTitles)),
-        ),
-          barGroups: barData.map((data) => BarChartGroupData(x: data.x,
-            barRods: [BarChartRodData(toY: data.y)])).toList(),
-      )
+    double barWidth = 20;
+    double spaceBetweenBars = 10;
 
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SizedBox(
+        width: barWidth * barData.length + spaceBetweenBars * (barData.length - 1),
+        child: BarChart(BarChartData(
+          minY: 0,
+          maxY: calculateMax(),
+          gridData: const FlGridData(show: false),
+          borderData: FlBorderData(show: false),
+          titlesData: FlTitlesData(
+            show: true,
+            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: getBottomTitles,
+              reservedSize: 25,
+            )),
+          ),
+          barGroups: barData
+              .map(
+                  (data) => BarChartGroupData(
+                  x: data.x,
+                      barRods: [
+                        BarChartRodData(
+                          toY: data.y,
+                          width: barWidth,
+                          borderRadius: BorderRadius.circular(5),
+                          color: Color(0xff2f4f4f),
+                          backDrawRodData: BackgroundBarChartRodData(
+                            show: true,
+                            toY: calculateMax(),
+                            color: Colors.grey[200]
+                          )
+                        )]))
+              .toList(),
+        )),
+      ),
     );
   }
-
 
   // Bottom titles
   Widget getBottomTitles(double value, TitleMeta meta) {
@@ -62,7 +101,7 @@ class _MyBarGraphState extends State<MyBarGraph> {
 
     String text;
 
-    switch (value.toInt()) {
+    switch (value.toInt()%12) {
       case 0:
         text = 'J';
         break;
@@ -103,7 +142,7 @@ class _MyBarGraphState extends State<MyBarGraph> {
         text = '';
         break;
     }
-    return SideTitleWidget(child: Text(text, style: textstyle),
-        axisSide: meta.axisSide);
+    return SideTitleWidget(
+        child: Text(text, style: textstyle), axisSide: meta.axisSide);
   }
 }

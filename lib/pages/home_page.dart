@@ -136,6 +136,7 @@ class _HomePageState extends State<HomePage> {
           
 
           return Scaffold(
+            backgroundColor: Colors.grey[300],
             floatingActionButton: FloatingActionButton(
               onPressed: () => openNewExpenseBox(),
               child: const Icon(Icons.add),
@@ -225,7 +226,7 @@ class _HomePageState extends State<HomePage> {
 
 
           await context.read<ExpenseDatabase>().createNewExpense(newExpense);
-
+          refreshBarData();
           nameController.clear();
           amountController.clear();
         }
@@ -253,6 +254,7 @@ class _HomePageState extends State<HomePage> {
 
           await context.read<ExpenseDatabase>()
               .updateExpense(existingId, updatedExpense);
+          refreshBarData();
 
           nameController.clear();
           amountController.clear();
@@ -268,6 +270,7 @@ class _HomePageState extends State<HomePage> {
       onPressed: () async {
         Navigator.pop(context);
         await context.read<ExpenseDatabase>().deleteExpense(id);
+        refreshBarData();
       },
       child: const Text("Delete"),
     );
